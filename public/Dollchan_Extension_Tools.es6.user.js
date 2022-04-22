@@ -17755,7 +17755,10 @@ function getImageBoard(checkDomains, checkEngines) {
 	if(!dm || !checkEngines) {
 		return null;
 	}
-	dm = dm.match(/(?:(?:[^.]+\.)(?=org\.|net\.|com\.))?[^.]+\.[^.]+$|^\d+\.\d+\.\d+\.\d+$|localhost/)[0];
+  const _dm = dm.match(/(?:(?:[^.]+\.)(?=org\.|net\.|com\.))?[^.]+\.[^.]+$|^\d+\.\d+\.\d+\.\d+$|localhost/);
+  if (_dm !== null) {
+	  dm = _dm[0];
+  }
 	for(let i = ibEngines.length - 1; i >= 0; --i) {
 		const [path, Ctor] = ibEngines[i];
 		if($q(path, doc)) {
