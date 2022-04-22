@@ -9,8 +9,8 @@ export function postFormTemplate(slug: string, threadId?: number) {
 
   const postFormUrl =
     (typeof threadId !== 'undefined'
-      ? `${config.api.host}/api/v1/boards/${slug}/threads/${threadId}/posts`
-      : `${config.api.host}/api/v1/boards/${slug}/posts`) + `?redirect=${encodeURIComponent(redirectUri)}`;
+      ? `${config.frontend.host}/api/v1/boards/${slug}/threads/${threadId}/posts`
+      : `${config.frontend.host}/api/v1/boards/${slug}/posts`) + `?redirect=${encodeURIComponent(redirectUri)}`;
 
   return html`<div class="postarea">
     <form id="postform" name="postform" action=${postFormUrl} method="post">
