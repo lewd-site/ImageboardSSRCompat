@@ -82,7 +82,7 @@ export function postTemplate({ post, showReplyLink }: PostProps) {
     return html` <div class="post__file">
       <span class="post__file-info filesize">
         <a href=${originalUrl} target="_blank">${formatFileName(file.name)}</a><br />
-        ${fileInfo}
+        ${fileInfo}<span style="display: none;">, ${file.name}</span>
       </span>
 
       <br />
