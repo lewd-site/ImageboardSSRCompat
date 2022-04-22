@@ -9,6 +9,9 @@ interface LayoutProps {
 }
 
 export function layout({ title, path, boards, content }: LayoutProps) {
+  let matches;
+  const titleUrl = (matches = path.match(/\/([0-9a-z]+)\/res\/\d+/i)) !== null ? `/${matches[1]}` : `/`;
+
   return html`<!DOCTYPE html>
     <html lang="ru">
       <head>
@@ -33,7 +36,7 @@ export function layout({ title, path, boards, content }: LayoutProps) {
 
       <body>
         <div class="adminbar"></div>
-        <div class="logo">${title}</div>
+        <div class="logo"><a href=${titleUrl}>${title}</a></div>
         <hr width="90%" />
         ${content}
       </body>

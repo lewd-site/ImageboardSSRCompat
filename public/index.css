@@ -28,6 +28,10 @@ a,
   text-align: center;
 }
 
+.logo a {
+  color: #eee;
+}
+
 .index-page,
 form[action='imgboard.php?delete'] {
   max-width: 800px;
@@ -51,6 +55,10 @@ form[action='imgboard.php?delete'] {
 .table__body,
 .table__row {
   border: 0;
+}
+
+.table__body th {
+  font-weight: normal;
 }
 
 .table__row {
