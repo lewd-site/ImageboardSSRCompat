@@ -31,12 +31,12 @@ export function createApp() {
     app.use(
       helmet.contentSecurityPolicy({
         directives: {
-          defaultSrc: ["'self'"],
+          defaultSrc: ["'self'", 'blob:'],
           baseUri: ["'self'"],
           fontSrc: ["'self'", 'https:', 'data:'],
           formAction: ["'self'"],
           frameAncestors: ["'self'"],
-          imgSrc: ["'self'", 'data:'],
+          imgSrc: ["'self'", 'https:', 'data:', 'blob:'],
           objectSrc: ["'none'"],
           scriptSrc: ["'self'", "'unsafe-inline'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
