@@ -1,0 +1,160 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: #36393f;
+  color: #eee;
+
+  font-family: 'Open Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+
+  scrollbar-color: #9da2b2 #303339;
+  scrollbar-width: thin;
+
+  margin: 0;
+}
+
+a,
+.quote {
+  color: #e3833d;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.index-page,
+form[action='imgboard.php?delete'] {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.index-page__title {
+  font-size: 20px;
+  text-align: center;
+
+  margin-bottom: 16px;
+}
+
+.table {
+  border: 0;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.table__header,
+.table__body,
+.table__row {
+  border: 0;
+}
+
+.table__row {
+  background: #36393f;
+}
+
+.table__body .table__row:nth-child(2n + 1) {
+  background: #3e4249;
+}
+
+.table__cell {
+  border: 0;
+
+  padding: 4px 8px;
+}
+
+.table__cell_left {
+  text-align: left;
+}
+
+.table__cell_right {
+  text-align: right;
+}
+
+.post {
+  margin-bottom: 8px;
+}
+
+.post_reply {
+  background: #43474f;
+  border-radius: 5px;
+  padding: 8px;
+}
+
+.post::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+.post__files {
+  display: flex;
+  flex-flow: row wrap;
+}
+
+.post__files_single {
+  float: left;
+}
+
+.post__files::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+.post__file {
+  margin-right: 16px;
+}
+
+.post__file-info {
+  font-size: 0.8em;
+}
+
+.post__thumb {
+  border-radius: 5px;
+  transition: opacity 250ms ease;
+}
+
+.post__subject {
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+.post__name {
+  font-weight: bold;
+}
+
+.post__tripcode:not(:empty)::before {
+  content: '!';
+}
+
+.post__date {
+  color: #a9a9a9;
+}
+
+.post__message .reflink::before {
+  content: '>>';
+}
+
+.post__message {
+  margin-top: 16px;
+}
+
+.post_with-files .post__message {
+  margin-top: 24px;
+}
+
+input[name='delete'] {
+  display: none;
+}
+
+.de-win,
+.de-win-body:not(#de-pform),
+.de-menu,
+.de-pview {
+  background: #43474f;
+}

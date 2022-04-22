@@ -1,0 +1,1 @@
+# Imageboard SSR Compat
