@@ -57,6 +57,9 @@ export function createApp() {
 
   if (process.env.NODE_ENV === 'development') {
     app.use(proxy({ match: /^\/assets\//, host: config.dev.host }));
+    app.use(proxy({ match: /^\/api\//, host: config.api.host }));
+    app.use(proxy({ match: /^\/thumbnails\//, host: config.api.host }));
+    app.use(proxy({ match: /^\/original\//, host: config.api.host }));
   }
 
   app.use(router.routes());

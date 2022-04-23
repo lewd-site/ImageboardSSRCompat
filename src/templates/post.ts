@@ -79,7 +79,7 @@ export function postTemplate({ post, showReplyLink }: PostProps) {
     const originalUrl = `${config.content.host}/${file.path}`;
     const thumbnailUrl = `${config.content.host}/thumbnails/${file.hash}.webp`;
 
-    return html` <div class="post__file">
+    return html`<div class="post__file">
       <span class="post__file-info filesize">
         <a href=${originalUrl} target="_blank">${formatFileName(file.name)}</a><br />
         ${fileInfo}<span style="display: none;">, ${file.name}</span>

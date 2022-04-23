@@ -31,6 +31,16 @@ export function layout({ title, path, boards, content }: LayoutProps) {
 
         <link rel="stylesheet" href="/index.css" />
 
+        <script src="/dayjs.min.js"></script>
+        <script src="/locale/ru.js"></script>
+        <script src="/plugin/localizedFormat.js"></script>
+        <script src="/plugin/utc.js"></script>
+        <script>
+          dayjs.extend(window.dayjs_plugin_localizedFormat);
+          dayjs.extend(window.dayjs_plugin_utc);
+          dayjs.locale('ru');
+        </script>
+
         <script src="/Dollchan_Extension_Tools.es6.user.js"></script>
       </head>
 

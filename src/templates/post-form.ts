@@ -18,14 +18,16 @@ export function postFormTemplate(slug: string, threadId?: number) {
         <tbody>
           <tr>
             <td class="postblock">Name</td>
-            <td><input type="text" name="name" size="28" maxlength="75" accesskey="n" /></td>
+            <td>
+              <input type="text" name="name" size="28" maxlength="75" accesskey="n" />
+              <input type="submit" value="Submit" accesskey="z" />
+            </td>
           </tr>
 
           <tr>
             <td class="postblock">Subject</td>
             <td>
               <input type="text" name="subject" size="40" maxlength="75" accesskey="s" autocomplete="off" />
-              <input type="submit" value="Submit" accesskey="z" />
             </td>
           </tr>
 
