@@ -2575,23 +2575,9 @@ async function readCfg() {
 	}
 	lang = Cfg.language;
 	if(val.commit !== commit && !localData) {
-		if(doc.readyState === 'loading') {
-			doc.addEventListener('DOMContentLoaded', () => setTimeout(showDonateMsg, 1e3));
-		} else {
-			setTimeout(showDonateMsg, 1e3);
-		}
 		val.commit = commit;
 	}
 	setStored('DESU_Config', JSON.stringify(val));
-	if(Cfg.updDollchan && !localData) {
-		checkForUpdates(false, val.lastUpd).then(html => {
-			if(doc.readyState === 'loading') {
-				doc.addEventListener('DOMContentLoaded', () => $popup('updavail', html));
-			} else {
-				$popup('updavail', html);
-			}
-		}, emptyFn);
-	}
 }
 
 // Initialize of hidden and favorites. Run spells.
@@ -15926,16 +15912,25 @@ function getImageBoard(checkDomains, checkEngines) {
 	ibEngines.push(['body.tinyib', newTinyIB]);
 
   class LewdSite extends TinyIB {
-		constructor(prot, dm) {
-			super(prot, dm);
+    constructor(prot, dm) {
+      super(prot, dm);
 
-			this.markupBB = true;
-			this.multiFile = true;
+      this.markupBB = true;
+      this.multiFile = true;
 
-			this.JsonBuilder = class {
-        constructor(json, board) {
+      this.JsonBuilder = class LewdSiteJsonBuilder {
+        static posts = [];
+
+        constructor(json, board, mode = 'replace') {
+          this._mode = mode;
           this._board = board;
-          this._posts = json.items;
+
+          if (mode === 'replace') {
+            this._posts = LewdSiteJsonBuilder.posts = json.items;
+          } else if (mode === 'new') {
+            this._posts = LewdSiteJsonBuilder.posts = [...LewdSiteJsonBuilder.posts, ...json.items];
+          }
+
           this.length = this._posts.length - 1;
           this.postersCount = '';
         }
@@ -15979,7 +15974,7 @@ function getImageBoard(checkDomains, checkEngines) {
             .join(' ');
 
           const files = post.files.map((file, index) => {
-            const fileInfo = `${this._formatFileSize(file.size)}, ${this._formatFileDimensions(file)}`;
+            const fileInfo = this._formatFileDimensions(file);
             const originalUrl = `/${file.path}`;
             const thumbnailUrl = `/thumbnails/${file.hash}.webp`;
 
@@ -16015,7 +16010,7 @@ function getImageBoard(checkDomains, checkEngines) {
                   <td class="doubledash"></td>
                   <td id=${`reply${post.id}`} class="reply">
                     <div class="${className}">
-                      <div class="${filesClassName}">${files}</div>
+                      <div class="${filesClassName}">${files.join('')}</div>
 
                       <a id="${post.id}"></a>
 
@@ -16032,7 +16027,7 @@ function getImageBoard(checkDomains, checkEngines) {
                         <a href="$#q${post.id}">${post.id}</a>
                       </span>
 
-                      <div class="post__message message">${this._markup(post, post.message_parsed)}</div>
+                      <div class="post__message message">${this._markup(post, post.message_parsed).join('')}</div>
                     </div>
                   </td>
                 </tr>
@@ -16061,7 +16056,7 @@ function getImageBoard(checkDomains, checkEngines) {
         _formatFileSize(size) {
           const units = ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ'];
           const index = size === 0 ? 0 : Math.floor((31 - Math.clz32(size)) / 10);
-          return `${(size / Math.pow(1024, index)).toFixed(2)} ${units[index]}`;
+          return `${(size >> (10 * index)).toFixed(2)} ${units[index]}`;
         }
 
         _formatDuration(seconds) {
@@ -16159,8 +16154,52 @@ function getImageBoard(checkDomains, checkEngines) {
 			return `/api/v1/boards/${board}/threads/${tNum}/posts`;
 		}
 
+		fixFileInputs(el) {
+			el.innerHTML = Array.from({ length: 5 }, (val, i) =>
+				`<div${ i ? ' style="display: none;"' : '' }><input type="file" name="files"></div>`
+			).join('');
+		}
+
+    _onSSEOpen() {
+      if (!aib.t) {
+        return;
+      }
+
+      Thread.first?.loadNewPosts();
+    }
+
+    _onPostCreated(data) {
+      if (!aib.t) {
+        return;
+      }
+
+      const json = { items: [JSON.parse(data)] };
+      const builder = new this.JsonBuilder(json, aib.b, 'new');
+      Thread.first?._loadNewFromBuilder(builder);
+    }
+
+    _initSSE() {
+      this._eventSource = new EventSource('/sse');
+      this._eventSource.addEventListener('open', () => this._onSSEOpen(), { passive: true });
+      this._eventSource.addEventListener('post_created', (event) => this._onPostCreated(event.data), { passive: true });
+      this._eventSource.addEventListener('error', () => this._eventSource?.close(), { passive: true });
+    }
+
 		init() {
 			defaultCfg.addTextBtns = 1;
+			defaultCfg.ajaxUpdThr = 0;
+      defaultCfg.postSameImg = 0;
+
+      const SSE_RECONNECT_INTERVAL = 5000;
+
+      this._initSSE();
+
+      setInterval(() => {
+        if (this._eventSource?.readyState === EventSource.CLOSED) {
+          this._initSSE();
+        }
+      }, SSE_RECONNECT_INTERVAL);
+
 			return false;
 		}
   }

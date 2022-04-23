@@ -31,7 +31,7 @@ function formatFileName(name: string): string {
 function formatFileSize(size: number): string {
   const units = ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ'];
   const index = size === 0 ? 0 : Math.floor((31 - Math.clz32(size)) / 10);
-  return `${(size / Math.pow(1024, index)).toFixed(2)} ${units[index]}`;
+  return `${(size >> (10 * index)).toFixed(2)} ${units[index]}`;
 }
 
 function formatDuration(seconds: number): string {
@@ -75,7 +75,7 @@ export function postTemplate({ post, showReplyLink }: PostProps) {
     .join(' ');
 
   const files = post.files.map((file, index) => {
-    const fileInfo = `${formatFileSize(file.size)}, ${formatFileDimensions(file)}`;
+    const fileInfo = formatFileDimensions(file);
     const originalUrl = `${config.content.host}/${file.path}`;
     const thumbnailUrl = `${config.content.host}/thumbnails/${file.hash}.webp`;
 
