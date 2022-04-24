@@ -22,6 +22,9 @@ export const config = {
   http: {
     port: +(env.HTTP_PORT || 3001),
   },
+  frontend: {
+    path: env.FRONTEND_PATH || '../frontend-compat',
+  },
   site: {
     title: env.SITE_TITLE || 'Imageboard',
   },

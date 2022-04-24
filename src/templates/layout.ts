@@ -1,5 +1,6 @@
 import { html, TemplateResult } from '@popeindustries/lit-html-server';
 import { unsafeHTML } from '@popeindustries/lit-html-server/directives/unsafe-html.js';
+import { stat } from 'fs/promises';
 import config from '../config';
 import Board from '../models/board';
 import header from './header';
@@ -12,9 +13,20 @@ interface LayoutProps {
   readonly content?: TemplateResult | string;
 }
 
-export function layout({ title, path, boards, content }: LayoutProps) {
-  let matches;
-  const titleUrl = (matches = path.match(/\/([0-9a-z]+)\/res\/\d+/i)) !== null ? `/${matches[1]}` : `/`;
+async function formatAssetsLink(url: string): Promise<string> {
+  const path = `${config.frontend.path}/dist${url}`;
+  const { mtime } = await stat(path);
+  return `${url}?mtime=${mtime.getTime()}`;
+}
+
+async function formatPublicLink(url: string): Promise<string> {
+  const path = `./public${url}`;
+  const { mtime } = await stat(path);
+  return `${url}?mtime=${mtime.getTime()}`;
+}
+
+export async function layout({ title, path, boards, content }: LayoutProps) {
+  const { mtime } = await stat(`${config.frontend.path}/dist/assets/bundle.css`);
 
   return html`<!DOCTYPE html>
     <html lang="ru">
@@ -33,10 +45,10 @@ export function layout({ title, path, boards, content }: LayoutProps) {
         <link rel="manifest" href="/site.webmanifest" />
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#2f3136" />
 
-        ${process.env.NODE_ENV === 'development'
-          ? html`<script src="${config.dev.host}/assets/bundle.js"></script>`
-          : html`<link rel="stylesheet" href="/assets/bundle.css" />
-              <script type="module" src="/assets/bundle.js" defer></script>`}
+        ${process.env.NODE_ENV === 'development' && false
+          ? html`<script src=${`${config.dev.host}/assets/bundle.js`}></script>`
+          : html`<link rel="stylesheet" href=${formatAssetsLink('/assets/bundle.css')} />
+              <script type="module" src=${formatAssetsLink('/assets/bundle.js')} defer></script>`}
 
         <script src="/dayjs.min.js"></script>
         <script src="/locale/ru.js"></script>
@@ -51,7 +63,7 @@ export function layout({ title, path, boards, content }: LayoutProps) {
           window.config = ${unsafeHTML(JSON.stringify({ ssr: config.ssr, sse: config.sse, site: config.site }))};
         </script>
 
-        <script src="/Dollchan_Extension_Tools.es6.user.js"></script>
+        <script src=${formatPublicLink('/Dollchan_Extension_Tools.es6.user.js')}></script>
       </head>
 
       <body>
