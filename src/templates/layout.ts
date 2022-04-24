@@ -2,6 +2,8 @@ import { html, TemplateResult } from '@popeindustries/lit-html-server';
 import { unsafeHTML } from '@popeindustries/lit-html-server/directives/unsafe-html.js';
 import config from '../config';
 import Board from '../models/board';
+import header from './header';
+import sidebar from './sidebar';
 
 interface LayoutProps {
   readonly path: string;
@@ -54,8 +56,10 @@ export function layout({ title, path, boards, content }: LayoutProps) {
 
       <body>
         <div class="layout">
+          ${header({ className: 'layout__header' })}
+          ${sidebar({ className: 'layout__sidebar layout__sidebar_hidden', path, boards })}
           <div class="adminbar"></div>
-          <div class="layout__logo logo"><a href=${titleUrl}>${title}</a></div>
+          <div class="logo"></div>
           <hr width="90%" />
           ${content}
         </div>
