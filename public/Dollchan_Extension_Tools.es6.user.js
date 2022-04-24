@@ -8933,9 +8933,11 @@ class PostForm {
 		}
 		this.form.onsubmit = e => {
 			e.preventDefault();
+      aib.disableSSE = true;
 			$popup('upload', Lng.sending[lang], true);
 			html5Submit(this.form, this.subm, true).then(checkUpload)
-				.catch(err => $popup('upload', getErrorMessage(err)));
+				.catch(err => $popup('upload', getErrorMessage(err)))
+        .finally(() => aib.disableSSE = false);
 		};
 	}
 	_initCaptcha() {
@@ -9074,7 +9076,7 @@ class PostForm {
 	_makeHideableContainer() {
 		(this.pForm = $add('<div id="de-pform" class="de-win-body"></div>'))
 			.append(this.form || '', this.oeForm || '');
-		const html = '<div class="de-parea"><div>[<a href="#"></a>]</div><hr></div>';
+		const html = '<div class="de-parea"><div><a href="#"></a></div><hr></div>';
 		this.pArea = [
 			$bBegin(DelForm.first.el, html),
 			$aEnd(aib._4chan ? $q('.board', DelForm.first.el) : DelForm.first.el, html)
@@ -13688,14 +13690,14 @@ class Thread {
 			return;
 		}
 		this.btns = $bEnd(el, `<div class="de-thr-buttons">${ Post.getPostBtns(true, true) }
-			<span class="de-thr-updater">[<a class="de-thr-updater-link de-abtn" href="#"></a>` +
-			(!aib.t ? ']</span>' : '<span id="de-updater-count" style="display: none;"></span>]</span>') +
+			<span class="de-thr-updater"><a class="de-thr-updater-link de-abtn" href="#"></a>` +
+			(!aib.t ? '</span>' : '<span id="de-updater-count" style="display: none;"></span></span>') +
 			'</div>');
 		['click', 'mouseover'].forEach(e => this.btns.addEventListener(e, this));
 		[this.btnHide,, this.btnFav, this.btnUpd] = [...this.btns.children];
 		if(!aib.t && Cfg.hideReplies) {
 			this.btnReplies = $bEnd(this.btns,
-				' <span class="de-btn-replies">[<a class="de-abtn" href="#"></a>]</span>');
+				' <span class="de-btn-replies"><a class="de-abtn" href="#"></a></span>');
 			this._toggleReplies();
 		}
 	}
@@ -14053,8 +14055,8 @@ class Thread {
 		const btns = this._moveBtnsToEnd();
 		if(!$q('.de-thr-collapse', btns)) {
 			btns.insertAdjacentHTML('beforeend',
-				`<span class="de-thr-collapse"> [<a class="de-thr-collapse-link de-abtn" href="${
-					aib.getThrUrl(aib.b, this.num) }"></a>]</span>`);
+				`<span class="de-thr-collapse"> <a class="de-thr-collapse-link de-abtn" href="${
+					aib.getThrUrl(aib.b, this.num) }"></a></span>`);
 		}
 		if(needToShow > visPosts) {
 			thrNavPanel.addThr(this);
@@ -15917,6 +15919,8 @@ function getImageBoard(checkDomains, checkEngines) {
 
       this.markupBB = true;
       this.multiFile = true;
+      this.jsonSubmit = true;
+      this.timePattern = 'dd+nn+yyyy+hh+ii+ss';
 
       this.JsonBuilder = class LewdSiteJsonBuilder {
         static posts = [];
@@ -15953,7 +15957,7 @@ function getImageBoard(checkDomains, checkEngines) {
 
         getPostEl(i) {
           const el = $add(aib.fixHTML(this.getPostHTML(i)));
-          if(i === -1) {
+          if (i === -1) {
             return el;
           }
           return el.firstElementChild.firstElementChild.lastElementChild;
@@ -16002,7 +16006,7 @@ function getImageBoard(checkDomains, checkEngines) {
           const subject = post.subject || '';
           const name = !post.name?.length && !post.tripcode?.length ? 'Anonymous' : post.name || '';
           const tripcode = post.tripcode || '';
-          const date = dayjs.utc(post.created_at).format('L LTS');
+          const date = dayjs.utc(post.created_at).format('DD.MM.YYYY HH:mm:ss');
 
           return `<table>
               <tbody>
@@ -16035,7 +16039,7 @@ function getImageBoard(checkDomains, checkEngines) {
             </table>`;
         }
 
-        * bannedPostsData() {}
+        *bannedPostsData() {}
 
         _formatFileName(name) {
           const MAX_FILE_NAME_LENGTH = 20;
@@ -16056,7 +16060,7 @@ function getImageBoard(checkDomains, checkEngines) {
         _formatFileSize(size) {
           const units = ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ'];
           const index = size === 0 ? 0 : Math.floor((31 - Math.clz32(size)) / 10);
-          return `${(size >> (10 * index)).toFixed(2)} ${units[index]}`;
+          return `${(size / 1024 ** index).toFixed(2)} ${units[index]}`;
         }
 
         _formatDuration(seconds) {
@@ -16150,15 +16154,39 @@ function getImageBoard(checkDomains, checkEngines) {
       };
     }
 
-		getJsonApiUrl(board, tNum) {
-			return `/api/v1/boards/${board}/threads/${tNum}/posts`;
-		}
+    getJsonApiUrl(board, tNum) {
+      return `${window.config.ssr.host}/api/v1/boards/${board}/threads/${tNum}/posts`;
+    }
 
-		fixFileInputs(el) {
-			el.innerHTML = Array.from({ length: 5 }, (val, i) =>
-				`<div${ i ? ' style="display: none;"' : '' }><input type="file" name="files"></div>`
-			).join('');
-		}
+    getSubmitData(data) {
+      if (data.status === 400) {
+        const messages = {
+          'required': 'Поле {field} обязательно для заполнения',
+          'max-length': 'Поле {field} слишком длинное',
+          'pattern': 'Поле {field} не соответствует требуемому формату',
+          'max-size': 'Файл слишком большой',
+          'max-width': 'Файл слишком большой',
+          'max-height': 'Файл слишком большой',
+          'mimetype': 'Неподдерживаемый тип файла',
+        };
+
+        const message = (typeof messages[data.message] !== 'undefined' ? messages[data.message] : data.message).replace(/{field}/gi, data.field);
+        return { error: message, postNum: null };
+      }
+
+      return { error: null, postNum: data.item.id };
+    }
+
+    isAjaxStatusOK(status) {
+      return status === 200 || status === 201 || status === 400;
+    }
+
+    fixFileInputs(el) {
+      el.innerHTML = Array.from(
+        { length: 5 },
+        (val, i) => `<div${i ? ' style="display: none;"' : ''}><input type="file" name="files"></div>`
+      ).join('');
+    }
 
     _onSSEOpen() {
       if (!aib.t) {
@@ -16169,7 +16197,7 @@ function getImageBoard(checkDomains, checkEngines) {
     }
 
     _onPostCreated(data) {
-      if (!aib.t) {
+      if (!aib.t || aib.disableSSE) {
         return;
       }
 
@@ -16179,16 +16207,19 @@ function getImageBoard(checkDomains, checkEngines) {
     }
 
     _initSSE() {
-      this._eventSource = new EventSource('/sse');
+      this._eventSource = new EventSource(`${window.config.sse.host}/sse`);
       this._eventSource.addEventListener('open', () => this._onSSEOpen(), { passive: true });
       this._eventSource.addEventListener('post_created', (event) => this._onPostCreated(event.data), { passive: true });
       this._eventSource.addEventListener('error', () => this._eventSource?.close(), { passive: true });
     }
 
-		init() {
-			defaultCfg.addTextBtns = 1;
-			defaultCfg.ajaxUpdThr = 0;
+    init() {
+      defaultCfg.addTextBtns = 1;
+      defaultCfg.ajaxUpdThr = 0;
       defaultCfg.postSameImg = 0;
+      defaultCfg.noSubj = 1;
+      defaultCfg.language = 0;
+      defaultCfg.postBtnsCSS = 0;
 
       const SSE_RECONNECT_INTERVAL = 5000;
 
@@ -16200,8 +16231,8 @@ function getImageBoard(checkDomains, checkEngines) {
         }
       }, SSE_RECONNECT_INTERVAL);
 
-			return false;
-		}
+      return false;
+    }
   }
 
 	class Lynxchan extends BaseBoard {
@@ -18029,12 +18060,12 @@ function getImageBoard(checkDomains, checkEngines) {
 		}
 	}
 	if(!dm) {
-		dm = wLoc.hostname;
+		dm = wLoc.hostname + (wLoc.port !== 80 ? `:${wLoc.port}` : '');
 	}
 	if(!dm || !checkEngines) {
 		return null;
 	}
-  const _dm = dm.match(/(?:(?:[^.]+\.)(?=org\.|net\.|com\.))?[^.]+\.[^.]+$|^\d+\.\d+\.\d+\.\d+$|localhost/);
+  const _dm = dm.match(/(?:(?:[^.]+\.)(?=org\.|net\.|com\.))?[^.]+\.[^.]+$|^\d+\.\d+\.\d+\.\d+(?::\d+)?$|localhost(?::\d+)?$/);
   if (_dm !== null) {
 	  dm = _dm[0];
   }

@@ -31,7 +31,7 @@ function formatFileName(name: string): string {
 function formatFileSize(size: number): string {
   const units = ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ'];
   const index = size === 0 ? 0 : Math.floor((31 - Math.clz32(size)) / 10);
-  return `${(size >> (10 * index)).toFixed(2)} ${units[index]}`;
+  return `${(size / 1024 ** index).toFixed(2)} ${units[index]}`;
 }
 
 function formatDuration(seconds: number): string {
@@ -81,8 +81,8 @@ export function postTemplate({ post, showReplyLink }: PostProps) {
 
     return html`<div class="post__file">
       <span class="post__file-info filesize">
-        <a href=${originalUrl} target="_blank">${formatFileName(file.name)}</a><br />
-        ${fileInfo}<span style="display: none;">, ${file.name}</span>
+        <a href=${originalUrl} target="_blank">${formatFileName(file.name)}</a>
+        <span style="display: none;">${fileInfo}, ${file.name}</span>
       </span>
 
       <br />
@@ -103,7 +103,7 @@ export function postTemplate({ post, showReplyLink }: PostProps) {
   const subject = (post as any).subject || '';
   const name = !post.name?.length && !post.tripcode?.length ? 'Anonymous' : post.name || '';
   const tripcode = post.tripcode || '';
-  const date = dayjs.utc(post.createdAt).format('L LTS');
+  const date = dayjs.utc(post.createdAt).format('DD.MM.YYYY HH:mm:ss');
 
   return html`<div class=${className}>
     <div class=${filesClassName}>${files}</div>
@@ -118,12 +118,9 @@ export function postTemplate({ post, showReplyLink }: PostProps) {
       <time class="post__date" datetime=${post.createdAt.toISOString()}>${date}</time>
     </label>
 
-    <span class="reflink">
-      <a href=${`#${post.id}`}>No.</a>
-      <a href=${`#q${post.id}`}>${post.id}</a>
-    </span>
+    <span class="reflink"><a href=${`#${post.id}`}>No.</a><a href=${`#q${post.id}`}>${post.id}</a></span>
 
-    ${showReplyLink ? html`[<a href=${`/${post.slug}/res/${post.id}`}>Reply</a>]` : undefined}
+    ${showReplyLink ? html`<a class="button" href=${`/${post.slug}/res/${post.id}`}>Ответить</a>` : undefined}
 
     <div class="post__message message">${markup(post, post.parsedMessage)}</div>
   </div>`;

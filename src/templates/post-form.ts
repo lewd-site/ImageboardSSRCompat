@@ -2,15 +2,10 @@ import { html } from '@popeindustries/lit-html-server';
 import config from '../config';
 
 export function postFormTemplate(slug: string, threadId?: number) {
-  const redirectUri =
-    typeof threadId !== 'undefined'
-      ? `${config.frontend.host}/${slug}/res/${threadId}`
-      : `${config.frontend.host}/${slug}`;
-
   const postFormUrl =
-    (typeof threadId !== 'undefined'
-      ? `${config.frontend.host}/api/v1/boards/${slug}/threads/${threadId}/posts`
-      : `${config.frontend.host}/api/v1/boards/${slug}/posts`) + `?redirect=${encodeURIComponent(redirectUri)}`;
+    typeof threadId !== 'undefined' && threadId !== null && threadId !== 0
+      ? `${config.ssr.host}/api/v1/boards/${slug}/threads/${threadId}/posts`
+      : `${config.ssr.host}/api/v1/boards/${slug}/threads`;
 
   return html`<div class="postarea">
     <form id="postform" name="postform" action=${postFormUrl} method="post">

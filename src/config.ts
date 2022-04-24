@@ -10,8 +10,11 @@ export const config = {
   content: {
     host: env.CONTENT_HOST || 'http://127.0.0.1:3000',
   },
-  frontend: {
-    host: env.FRONTEND_HOST || 'http://127.0.0.1:3001',
+  ssr: {
+    host: env.SSR_HOST || 'http://127.0.0.1:3001',
+  },
+  sse: {
+    host: env.SSE_HOST || 'http://127.0.0.1:3002',
   },
   dev: {
     host: env.DEV_HOST || 'http://127.0.0.1:9000',

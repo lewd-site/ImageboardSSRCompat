@@ -1,4 +1,6 @@
 import { html, TemplateResult } from '@popeindustries/lit-html-server';
+import { unsafeHTML } from '@popeindustries/lit-html-server/directives/unsafe-html.js';
+import config from '../config';
 import Board from '../models/board';
 
 interface LayoutProps {
@@ -29,26 +31,34 @@ export function layout({ title, path, boards, content }: LayoutProps) {
         <link rel="manifest" href="/site.webmanifest" />
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#2f3136" />
 
-        <link rel="stylesheet" href="/index.css" />
+        ${process.env.NODE_ENV === 'development'
+          ? html`<script src="${config.dev.host}/assets/bundle.js"></script>`
+          : html`<link rel="stylesheet" href="/assets/bundle.css" />
+              <script type="module" src="/assets/bundle.js" defer></script>`}
 
         <script src="/dayjs.min.js"></script>
         <script src="/locale/ru.js"></script>
         <script src="/plugin/localizedFormat.js"></script>
         <script src="/plugin/utc.js"></script>
+
         <script>
           dayjs.extend(window.dayjs_plugin_localizedFormat);
           dayjs.extend(window.dayjs_plugin_utc);
           dayjs.locale('ru');
+
+          window.config = ${unsafeHTML(JSON.stringify({ ssr: config.ssr, sse: config.sse, site: config.site }))};
         </script>
 
         <script src="/Dollchan_Extension_Tools.es6.user.js"></script>
       </head>
 
       <body>
-        <div class="adminbar"></div>
-        <div class="logo"><a href=${titleUrl}>${title}</a></div>
-        <hr width="90%" />
-        ${content}
+        <div class="layout">
+          <div class="adminbar"></div>
+          <div class="layout__logo logo"><a href=${titleUrl}>${title}</a></div>
+          <hr width="90%" />
+          ${content}
+        </div>
       </body>
     </html>`;
 }

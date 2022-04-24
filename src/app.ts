@@ -1,4 +1,5 @@
 import Koa from 'koa';
+import logger from 'koa-logger';
 import Router from 'koa-router';
 import helmet from 'koa-helmet';
 import proxy from 'koa-proxy';
@@ -26,8 +27,9 @@ export function createApp() {
   router.get('/:slug/res/:threadId', postController.index);
 
   const app = new Koa();
-
-  if (process.env.NODE_ENV !== 'development') {
+  if (process.env.NODE_ENV === 'development') {
+    app.use(logger());
+  } else {
     app.use(
       helmet.contentSecurityPolicy({
         directives: {
