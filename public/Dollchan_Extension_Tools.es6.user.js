@@ -15997,8 +15997,8 @@ function getImageBoard(checkDomains, checkEngines) {
 
             return `<div class="post__file">
               <span class="post__file-info filesize">
-                <a href="${originalUrl}" target="_blank">${this._formatFileName(file.name)}</a><br />
-                ${fileInfo}<span style="display: none;">, ${file.name}</span>
+                <a href="${originalUrl}" target="_blank">${this._formatFileName(file.name)}</a>
+                <span style="display: none;">${fileInfo}, ${file.name}</span>
               </span>
 
               <br />
