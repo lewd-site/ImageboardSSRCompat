@@ -15944,7 +15944,7 @@ function getImageBoard(checkDomains, checkEngines) {
         }
 
         getOpMessage() {
-          return $add(aib.fixHTML(`<div class="post__message message">${this._markup(this._posts[0].message_parsed)}</div>`));
+          return $add(aib.fixHTML(`<div class="post__message message">${this._markup(this._posts[0].message_parsed).join('')}</div>`));
         }
 
         getPNum(i) {
@@ -16107,7 +16107,7 @@ function getImageBoard(checkDomains, checkEngines) {
               return `<a href="/${post.slug}/res/${post.parentId || post.id}.html#${node.postID}" rel="ugc">&gt;&gt;${node.postID}</a>`;
 
             case 'style':
-              const content = this._markup(post, node.children);
+              const content = this._markup(post, node.children).join('');
 
               switch (node.style) {
                 case 'bold':
