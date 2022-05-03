@@ -14901,7 +14901,20 @@ function initThreadUpdater(title, enableUpdate) {
 				sendError = true;
 				updateTitle();
 			}
-		}
+		},
+    updateTitle,
+    addNewPosts(count) {
+      newPosts += count;
+    },
+    getLastECode() {
+      return lastECode;
+    },
+    setLastECode(eCode) {
+      lastECode = eCode;
+    },
+    favicon,
+    notification,
+    audio,
 	};
 }
 
@@ -16188,12 +16201,58 @@ function getImageBoard(checkDomains, checkEngines) {
       ).join('');
     }
 
+    _handleNewPosts(lPosts, err) {
+			if(err instanceof CancelError) {
+				return;
+			}
+			infoLoadErrors(err, false);
+			const eCode = err instanceof AjaxError ? err.code : 0;
+			if(eCode !== 200 && eCode !== 304) {
+				if(doc.hidden && updater.favicon.canBlink) {
+					updater.favicon.startBlink(true);
+				}
+				if(eCode === -1 || (eCode === 404 && updater.getLastECode() === 404)) {
+					Thread.removeSavedData(aib.b, aib.t); // Not working yet
+					updater.updateTitle(eCode);
+				}
+        updater.updateTitle(eCode);
+        updater.setLastECode(eCode);
+				updateFavorites(aib.t, getErrorMessage(err), 'error');
+				return;
+			}
+			if(updater.getLastECode() !== 200) {
+				updater.favicon.stopBlink();
+				this._setUpdateStatus('on');
+				updateTitle(eCode);
+			}
+      updater.setLastECode(eCode);
+      if(doc.hidden) {
+        if(lPosts !== 0) {
+          updater.addNewPosts(lPosts);
+          updater.updateTitle();
+          if(updater.favicon.canBlink) {
+            updater.favicon.startBlink(false);
+          }
+          if(updater.notification.canShow) {
+            updater.notification.showNotif();
+          }
+          if(updater.audio.enabled) {
+            updater.audio.playAudio();
+          }
+        }
+      }
+    }
+
     _onSSEOpen() {
       if (!aib.t) {
         return;
       }
 
-      Thread.first?.loadNewPosts();
+      Thread.first?.loadNewPosts().then(({ newCount, locked }) => {
+        this._handleNewPosts(newCount, locked ? AjaxError.Locked : AjaxError.Success);
+      });
+
+      updater.favicon.initIcons();
     }
 
     _onPostCreated(data) {
@@ -16203,7 +16262,8 @@ function getImageBoard(checkDomains, checkEngines) {
 
       const json = { items: [JSON.parse(data)] };
       const builder = new this.JsonBuilder(json, aib.b, 'new');
-      Thread.first?._loadNewFromBuilder(builder);
+      const { newCount, locked } = Thread.first?._loadNewFromBuilder(builder);
+      this._handleNewPosts(newCount, locked ? AjaxError.Locked : AjaxError.Success);
     }
 
     _initSSE() {
