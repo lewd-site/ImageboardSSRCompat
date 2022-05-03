@@ -33,7 +33,7 @@ export function createApp() {
     app.use(
       helmet.contentSecurityPolicy({
         directives: {
-          defaultSrc: ["'self'", 'blob:'],
+          defaultSrc: ["'self'", 'https:', 'blob:'],
           baseUri: ["'self'"],
           fontSrc: ["'self'", 'https:', 'data:'],
           formAction: ["'self'"],
