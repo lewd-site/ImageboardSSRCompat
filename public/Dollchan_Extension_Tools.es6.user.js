@@ -16256,11 +16256,12 @@ function getImageBoard(checkDomains, checkEngines) {
     }
 
     _onPostCreated(data) {
-      if (!aib.t || aib.disableSSE) {
+      const post = JSON.parse(data);
+      if (aib.disableSSE || !aib.t || +aib.t !== +post.parent_id) {
         return;
       }
 
-      const json = { items: [JSON.parse(data)] };
+      const json = { items: [post] };
       const builder = new this.JsonBuilder(json, aib.b, 'new');
       const { newCount, locked } = Thread.first?._loadNewFromBuilder(builder);
       this._handleNewPosts(newCount, locked ? AjaxError.Locked : AjaxError.Success);
