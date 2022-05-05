@@ -16117,7 +16117,26 @@ function getImageBoard(checkDomains, checkEngines) {
               return `<a href="${node.url}" target="_blank" rel="ugc">${node.text}</a>`;
 
             case 'reflink':
-              return `<a href="/${post.slug}/res/${post.parentId || post.id}.html#${node.postID}" rel="ugc">&gt;&gt;${node.postID}</a>`;
+              const url = `/${post.slug}/res/${post.parentId || post.id}.html#${node.postID}`;
+
+              return `<a href="${url}" rel="ugc">&gt;&gt;${node.postID}</a>`;
+
+            case 'dice':
+              let textContent = `##${node.count}d${node.max}##`;
+              if (typeof node.result !== 'undefined') {
+                textContent += ` = ${node.result.join(', ')}`;
+
+                if (node.count > 1) {
+                  const sum = node.result.reduce((total, current) => total + current, 0);
+                  const min = Math.min(...node.result);
+                  const max = Math.max(...node.result);
+                  const average = +(sum / node.count).toFixed(3);
+
+                  textContent += ` (sum: ${sum}, min: ${min}, max: ${max}, avg: ${average})`;
+                }
+              }
+
+              return `<span class="dice">${textContent}</span>`;
 
             case 'style':
               const content = this._markup(post, node.children).join('');
